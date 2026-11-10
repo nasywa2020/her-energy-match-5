@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>HER ENERGY — Petualangan 7 Hari</title>
+<style>
+:root{--bg:#e9eee9;--paper:#fbfaf6;--ink:#1f2d33;--muted:#5b6a70;--green:#4f7a6c;--sage:#9bb5a6;--sun:#d9a441;--line:#d5dcd7}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;touch-action:manipulation}
+.app{max-width:860px;margin:10px auto;background:var(--paper);border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap}
+h1{margin:0;font-size:24px}header p{margin:0;color:var(--muted);font-size:14px}.day{font-weight:700;color:var(--green)}
+.mute{border:2px solid var(--green);background:transparent;border-radius:12px;padding:6px 12px;font:700 15px system-ui;color:inherit;cursor:pointer;min-height:40px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:8px 12px}
+.stat{border:1px solid var(--line);border-radius:12px;text-align:center;padding:3px 2px}
+.stat b{display:block;font-size:20px;line-height:1.2}.stat span{font-size:12px;color:var(--muted)}.stat.up{outline:3px solid var(--sun)}
+#stage{position:relative}canvas{display:block;width:100%;height:auto}
+#ov{position:absolute;inset:0;background:rgba(251,250,246,.97);overflow:auto;padding:18px;display:none}
+#ov h2{margin:4px 0 6px;font-size:26px;line-height:1.25}.tag{color:var(--green);font-weight:700;font-size:15px}.story{margin:0 0 10px;color:var(--muted)}
+.btn{background:var(--green);color:#fff;border:0;border-radius:14px;padding:12px 24px;font:700 18px system-ui;min-height:50px;cursor:pointer}
+.row{display:flex;justify-content:space-between;font-weight:700;margin-top:8px}.meter{height:11px;background:var(--line);border-radius:9px;overflow:hidden}.meter i{display:block;height:100%;background:var(--green)}
+.pm{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.pm span{border:1px solid var(--line);border-radius:10px;padding:2px 8px;font-size:13px}
+#ctl{display:flex;justify-content:space-between;padding:10px 14px;gap:10px;user-select:none;-webkit-user-select:none}#ctl div{display:flex;gap:10px}
+#ctl button{width:84px;height:64px;font-size:30px;border-radius:16px;border:2px solid var(--green);background:var(--paper);color:var(--ink);touch-action:none}
+#ctl button:active{background:var(--sage)}#ctl button.j{width:130px;background:var(--green);color:#fff}
+.hint{padding:0 16px 12px;font-size:14px;color:var(--muted);text-align:center}
+@media(max-width:640px){.stats{grid-template-columns:repeat(3,1fr)}#ov{padding:12px}#ov h2{font-size:21px}}
+#qp{position:absolute;top:6px;left:8px;right:8px;z-index:2;pointer-events:none;display:none;padding:8px 12px;border:2px solid var(--green);border-radius:12px;background:rgba(251,250,246,.93)}
+#qp .qt{color:var(--green);font-weight:700;font-size:13px;letter-spacing:.03em}
+#qp .qh{font-size:20px;font-weight:700;line-height:1.3;margin:2px 0}
+#qp .qs{font-size:16px;line-height:1.45;color:#3b4a50;margin:0 0 4px}
+#qp .qq{font-size:18px;font-weight:700;margin:2px 0 4px}
+#qp .hw{font-size:15px;color:var(--green);font-weight:700}
+#qp .pl{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.03em}
+#qp .pt{font-size:18px;font-weight:700;margin:1px 0;line-height:1.3}
+#qp .pd{font-size:16px;line-height:1.4;color:#3b4a50}
+#qp .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+#qp .chips span{border:1px solid var(--line);border-radius:10px;padding:1px 7px;font-size:14px;font-weight:700;background:#fff}
+@media(max-width:640px){#qp{top:4px;left:4px;right:4px;padding:6px 9px}#qp .qs{font-size:13px;line-height:1.35;margin:0 0 2px}#qp .qh{font-size:16px}#qp .qq{font-size:15px}#qp .pt{font-size:15px}#qp .pd{font-size:14px}#qp .hw{font-size:13px}#qp .chips span{font-size:12px}}
+</style></head><body>
+<div class="app">
+<header><div><h1>HER ENERGY</h1><p>Understanding PLTS, Understanding Our Power</p></div><div class="day" id="dl"></div><button class="mute" id="mb" onclick="toggleMute()">🔊 Musik</button></header>
+<div class="stats" id="hud"></div>
+<div id="stage"><canvas id="c" width="800" height="400"></canvas><div id="qp"></div><div id="ov"></div></div>
+<div id="ctl"><div><button id="bl" aria-label="Kiri">◀</button><button id="br" aria-label="Kanan">▶</button></div><button class="j" id="bj" aria-label="Lompat">⬆ Lompat</button></div>
+<div class="hint">Panah ◀ ▶ untuk berjalan, ⬆ atau spasi untuk lompat. Pecahkan bata dari bawah dan kumpulkan koin 🪙, injak pegas untuk melompat tinggi, lalu sentuh blok jawaban 1-4 di tengah jalan dan lanjut ke bendera 🚩. Tidak ada nyawa: jatuh atau menabrak tidak mengurangi poin.</div>
+</div>
+<script>
+const STATS=[["w","⏰","Waktu"],["e","❤️","Energi"],["k","📚","Pengetahuan"],["j","🤝","Jejaring"],["s","🗣️","Suara"],["a","⚡","Agency"]];
+const START={w:70,e:70,k:15,j:10,s:5,a:5};
+// Tiap pilihan: [judul, deskripsi, perubahan nilai]
+const DAYS=[
+{p:"Rumah",t:"Pagi yang sibuk",h:"Banyak hal harus dilakukan.",s:"Rani menyiapkan sarapan, mengurus anak, dan membantu usaha kecil keluarga. Pagi ini ada undangan sosialisasi tentang PLTS di balai desa. Waktu Rani terbatas.",o:[
+["Kerjakan semua pekerjaan rumah sendiri","Rumah tetap tertangani, tetapi waktu dan energimu berkurang.",{w:-10,e:-10}],
+["Bagi pekerjaan rumah dengan pasangan","Pekerjaan dibagi. Kamu memiliki ruang untuk kegiatan di luar rumah.",{w:5,j:2,a:3}],
+["Datang ke sosialisasi PLTS","Kamu memperoleh informasi awal tentang proyek.",{w:-5,e:-5,k:8}],
+["Bagi pekerjaan lalu datang ke sosialisasi","Kamu mengubah pembagian kerja sekaligus mendapat informasi baru.",{w:0,k:5,j:2,a:3}]]},
+{p:"Balai Desa",t:"Informasi pertama",h:"PLTS bukan hanya soal panel surya.",s:"Di balai desa, fasilitator menjelaskan teknologi PLTS dan pengelolaan kawasan. Rani mulai bertanya: siapa memperoleh manfaat, dan siapa perlu menanggung dampaknya?",o:[
+["Dengarkan saja","Informasi dasar bertambah, tetapi pertanyaanmu belum tersampaikan.",{k:3}],
+["Tanyakan dampak bagi kehidupan warga","Kamu menghubungkan teknologi dengan kehidupan sehari-hari.",{k:10}],
+["Tanyakan secara khusus tentang perempuan","Pertanyaanmu membuka pembicaraan tentang akses dan kebutuhan perempuan.",{k:7,s:7,a:3}],
+["Ajak perempuan lain ikut berdiskusi","Informasi berubah menjadi jejaring dan ruang percakapan bersama.",{j:5,s:5,a:2}]]},
+{p:"Usaha",t:"Peluang ekonomi",h:"Kesempatan datang bersama keterbatasan waktu.",s:"Ada pelatihan usaha yang berkaitan dengan peluang ekonomi di sekitar kawasan PLTS. Rani tertarik, tetapi pekerjaan rumah dan pengasuhan masih harus diselesaikan.",o:[
+["Lewati pelatihan","Peluang belajar dan jejaring terlewat.",{w:3}],
+["Datang sendiri","Kamu memperoleh keterampilan dan mengenal orang baru.",{w:-6,k:6,j:4,a:2}],
+["Ajak kelompok perempuan","Pelatihan menjadi kesempatan membangun jejaring bersama.",{w:-6,k:5,j:8,s:3,a:3}],
+["Bagi tugas rumah lalu ikut pelatihan","Kamu membuat akses ekonomi tidak sepenuhnya bergantung pada waktu domestik.",{w:-6,k:9,j:7,s:4,a:7}]]},
+{p:"Lingkungan",t:"Perubahan yang terlihat",h:"Lingkungan juga memberi tanda.",s:"Dalam perjalanan pulang, Rani memperhatikan perubahan di sekitar waduk dan aktivitas warga. Ia belum tahu apakah semua perubahan berkaitan dengan PLTS.",o:[
+["Abaikan karena bukan urusanmu","Kamu menghemat waktu, tetapi kehilangan kesempatan memahami perubahan.",{w:3}],
+["Amati dan catat apa yang terlihat","Kamu mulai mengumpulkan pengalaman sebagai pengetahuan lokal.",{w:-2,k:5,a:2}],
+["Tanyakan kepada warga","Pengalamanmu dibandingkan dengan pengalaman orang lain.",{w:-3,k:4,j:4,s:2,a:1}],
+["Diskusikan dengan kelompok perempuan","Pengamatan individu menjadi pengetahuan kolektif.",{w:-6,k:7,j:8,s:7,a:5}]]},
+{p:"Forum",t:"Suara perempuan",h:"Siapa yang berbicara ketika keputusan dibuat?",s:"Forum warga membahas perkembangan kawasan. Peserta diminta menyampaikan hal yang perlu diperhatikan. Rani tahu pengalaman perempuan sering terjadi di ruang yang berbeda dari ruang keputusan.",o:[
+["Dengarkan pembicaraan","Kamu memahami isu, tetapi belum menggunakan ruang bicara.",{k:3}],
+["Ceritakan pengalamanmu","Pengalaman sehari-hari menjadi bagian dari percakapan publik.",{s:8,a:4}],
+["Sampaikan aspirasi kelompok perempuan","Kamu membawa suara yang lebih luas daripada pengalaman pribadi.",{j:3,s:12,a:5}],
+["Usulkan kebutuhan perempuan masuk dalam keputusan","Kamu menghubungkan pengalaman, pengetahuan, dan pengambilan keputusan.",{w:-3,k:3,s:10,a:8}]]},
+{p:"Komunitas",t:"Siapa yang mendapat manfaat?",h:"Manfaat teknologi tidak otomatis sama bagi semua orang.",s:"Dalam percakapan komunitas, muncul pertanyaan: apakah manfaat pembangunan energi dapat diakses semua kelompok? Rani melihat siapa yang mendapat akses, menanggung beban, dan memiliki kendali.",o:[
+["Anggap manfaat akan terbagi sendiri","Kamu tidak perlu banyak waktu untuk mengurus isu tersebut.",{w:3}],
+["Tanyakan siapa yang punya akses","Kamu mulai melihat hubungan antara sumber daya dan akses.",{w:-2,k:6,a:3}],
+["Petakan manfaat dan beban bagi perempuan","Kamu mengidentifikasi sisi ekonomi, waktu, pekerjaan, dan lingkungan.",{w:-3,k:7,j:3,a:4}],
+["Susun usulan manfaat yang inklusif","Kamu mengubah pengamatan menjadi gagasan bersama.",{w:-5,k:8,j:7,s:9,a:10}]]},
+{p:"Masa Depan",t:"Pilihan untuk masa depan",h:"Pengetahuanmu kini punya arah.",s:"Tujuh hari berlalu. Rani memiliki lebih banyak informasi, mengenal lebih banyak orang, dan memahami bahwa teknologi hadir bersama relasi sosial. Apa yang akan ia lakukan?",o:[
+["Tetap menjadi pengamat","Kamu memilih terus belajar sebelum mengambil peran lebih jauh.",{k:3}],
+["Menjadi peserta aktif","Kamu berkomitmen hadir dalam ruang informasi dan keputusan.",{k:3,s:6,a:5}],
+["Membangun kelompok perempuan","Kamu mengubah jejaring menjadi ruang belajar dan dukungan bersama.",{j:8,s:6,a:4}],
+["Gabungkan pengetahuan, jejaring, suara, dan advokasi","Kamu menjadikan pengalaman sebagai dasar perubahan bersama.",{k:5,j:8,s:10,a:12}]]}
+];
+const ENDINGS={
+observer:["The Observer","Mengetahui keberadaan PLTS tetapi belum banyak terlibat aktif."],
+informed:["Informed Woman","Memiliki pengetahuan luas & akses informasi yang kuat."],
+voice:["The Community Voice","Membangun jaringan & aktif menyuarakan kebutuhan perempuan."],
+change:["The Change Maker","Memiliki pengetahuan, jejaring, suara, & mempengaruhi keputusan."]};
+
+const RANI={top:"#3f9a7a",dress:1,apron:"#f2c94c",hair:"#4a2f1f",h:"bun",skin:"#e8b48a"};
+const NPCD=[
+{n:"Dadan",z:0,st:{top:"#4a78b8",pants:"#5b4636",hair:"#2a1d16",h:"short",skin:"#e0ac7e"},nd:["🧹","🤝"]},
+{n:"Siti",z:1,st:{top:"#e87fa0",dress:1,hair:"#3a2a22",h:"bun",skin:"#e8b48a",acc:"baby"},nd:["⏰","👶","💰"]},
+{n:"Bu Euis",z:2,st:{top:"#8a64b5",dress:1,hair:"#dcdcdc",h:"bun",skin:"#dba77a",acc:"cane"},nd:["🚶","🩺","📄"]},
+{n:"Maya",z:3,bx:[430,500,262,330],st:{top:"#2f4b7c",pants:"#2f4b7c",hair:"#1d1410",h:"long",skin:"#e8b48a",acc:"id"},nd:["📋","🗣️"]},
+{n:"Arif",z:3,bx:[515,575,262,330],st:{top:"#f08a24",pants:"#3a3f4a",hair:"#222",h:"helmet",skin:"#d99d6f",acc:"vest"},nd:["🔧","🔆"]}];
+function person(c,x,y,s,p,walk,dir,t){
+ c.save();c.translate(x,y);c.scale(s*dir,s);
+ c.fillStyle="rgba(0,0,0,.2)";c.beginPath();c.ellipse(0,1,14,5,0,0,7);c.fill();
+ const sw=walk?Math.sin(t*.4)*4:0;
+ if(p.dress){c.fillStyle=p.skin;c.fillRect(-5,-12,4,12+sw*.3);c.fillRect(1,-12,4,12-sw*.3)}else{c.fillStyle=p.pants||"#6b5646";c.fillRect(-7,-18,6,18+sw*.3);c.fillRect(1,-18,6,18-sw*.3)}
+ c.fillStyle=p.top;c.beginPath();if(p.dress){c.moveTo(-9,-40);c.lineTo(9,-40);c.lineTo(14,-10);c.lineTo(-14,-10);c.closePath()}else c.roundRect(-10,-40,20,26,5);c.fill();
+ if(p.apron){c.fillStyle=p.apron;c.fillRect(-6,-30,12,19)}
+ if(p.acc==="vest"){c.fillStyle="#ffe14a";c.fillRect(-10,-30,20,5)}
+ c.fillStyle=p.skin;c.beginPath();c.ellipse(-12,-28+sw*.4,3.5,8,0,0,7);c.fill();c.beginPath();c.ellipse(12,-28-sw*.4,3.5,8,0,0,7);c.fill();
+ c.beginPath();c.arc(0,-50,11,0,7);c.fill();
+ c.fillStyle=p.hair;
+ if(p.h==="helmet"){c.fillStyle="#ffd21f";c.beginPath();c.arc(0,-52,12.5,Math.PI,0);c.fill();c.fillRect(-14,-53,28,3)}
+ else{c.beginPath();c.arc(0,-52,11.5,Math.PI,0);c.fill();if(p.h==="bun"){c.beginPath();c.arc(0,-64,5,0,7);c.fill()}if(p.h==="long"){c.fillRect(-11.5,-52,4,18);c.fillRect(7.5,-52,4,18)}}
+ c.fillStyle="#222";c.fillRect(-5,-50,2.5,3);c.fillRect(2.5,-50,2.5,3);c.strokeStyle="#7a3b2e";c.lineWidth=1.5;c.beginPath();c.arc(0,-46,4,.2,Math.PI-.2);c.stroke();
+ if(p.acc==="cane"){c.strokeStyle="#6b4423";c.lineWidth=3;c.beginPath();c.moveTo(16,-24);c.lineTo(19,0);c.stroke()}
+ if(p.acc==="baby"){c.fillStyle="#f7d9c4";c.beginPath();c.arc(-15,-30,6,0,7);c.fill();c.fillStyle="#f6a6c1";c.beginPath();c.arc(-15,-32,6.3,Math.PI,0);c.fill()}
+ if(p.acc==="id"){c.strokeStyle="#c0392b";c.lineWidth=2;c.beginPath();c.moveTo(-4,-40);c.lineTo(0,-27);c.lineTo(4,-40);c.stroke();c.fillStyle="#fff";c.fillRect(-3,-27,6,6)}
+ c.restore()}
+function nametag(x,y,t){g.font="bold 12px system-ui";const w=g.measureText(t).width+12;g.fillStyle="rgba(60,40,20,.82)";g.beginPath();g.roundRect(x-w/2,y,w,18,8);g.fill();g.fillStyle="#fff";g.textAlign="center";g.fillText(t,x,y+13);g.textAlign="left"}
+
+const $=id=>document.getElementById(id);
+const cv=$("c"),g=cv.getContext("2d"),W=800,H=400,GY=330;
+if(!g.roundRect)g.roundRect=function(x,y,w,h){this.rect(x,y,w,h)};
+const SKY=[["#8fd3f4","#d9f3ff"],["#f6d38b","#fff1cf"],["#c9b6ee","#f1e9ff"],["#9fe0b4","#e2f8e8"],["#f4b896","#ffe4d4"],["#9cc3ee","#e2efff"],["#f7c873","#ffeab5"]];
+const CAST=[[0],[3,4],[1],[2],[3,2,1],[2,1,0],[0,1,2,3,4]];
+const clamp=v=>Math.max(0,Math.min(100,v));
+// ===== audio (musik chiptune orisinal) =====
+let AC=null,master,muted=false,step8=0,nextT=0;
+try{muted=localStorage.getItem("hm")==="1"}catch(e){}
+function initAudio(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=muted?0:.5;master.connect(AC.destination);nextT=AC.currentTime+.1;setInterval(music,40)}catch(e){AC=null}}
+function toggleMute(){muted=!muted;if(master)master.gain.value=muted?0:.5;$("mb").textContent=muted?"🔇 Musik":"🔊 Musik";try{localStorage.setItem("hm",muted?"1":"0")}catch(e){}}
+function tone(f,d,ty,v,to,at){if(!AC)return;const t=AC.currentTime+(at||0),o=AC.createOscillator(),gn=AC.createGain();o.type=ty||"square";o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);gn.gain.setValueAtTime(v||.1,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(gn);gn.connect(master);o.start(t);o.stop(t+d+.03)}
+function hat(v,at){if(!AC)return;const n=AC.sampleRate*.04,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),gn=AC.createGain();s.buffer=b;gn.gain.value=v;s.connect(gn);gn.connect(master);s.start(AC.currentTime+(at||0))}
+const mf=n=>440*Math.pow(2,(n-69)/12);
+const LEAD=[[76,79,84,79,76,79,72,76],[74,79,83,79,74,79,71,74],[72,76,81,76,72,76,69,72],[72,77,81,77,72,77,69,72],[79,0,76,72,76,79,84,0],[83,0,79,74,79,83,86,0],[81,0,77,72,77,81,84,0],[79,74,71,74,79,83,86,83]];
+const BASS=[48,43,45,41,48,43,41,43];
+function music(){if(!AC||AC.state!=="running")return;while(nextT<AC.currentTime+.2){const b=(step8>>3)&7,s=step8&7,d=.19,t=nextT-AC.currentTime,n=LEAD[b][s];
+ if(n)tone(mf(n),d*.9,"square",.045,0,t);if(s%2===0)tone(mf(BASS[b]+(s===4?7:0)),d*1.6,"triangle",.16,0,t);if(s%2===1)hat(.03,t);if(s===0||s===4)tone(120,.1,"sine",.2,45,t);nextT+=d;step8++}}
+document.addEventListener("visibilitychange",()=>{if(AC)document.hidden?AC.suspend():AC.resume()});
+const sfx={jump:()=>tone(330,.18,"square",.1,740),coin:()=>{tone(988,.08,"square",.09);tone(1319,.25,"square",.09,0,.08)},bump:()=>tone(140,.12,"square",.14,70),boing:()=>tone(220,.3,"sine",.25,880),ok:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.18,"square",.09,0,i*.1)),win:()=>[523,659,784,659,784,1047,1319].forEach((f,i)=>tone(f,.2,"square",.09,0,i*.11)),oops:()=>tone(300,.3,"triangle",.15,120)};
+// ===== state =====
+const keys={};
+let st,day,picks,L,segs,plats,obs,hens,coinsL,mps,sprs,cp,P,qx,qdone,res,rt=0,fr=0,cd=0,tmsg="",toast=0,mode="intro",coinsAll=0,dayCoins=0,ptc=[],winT=0,lastSafe=60;
+function start(){st={...START};day=0;picks=[];coinsAll=0;hud();intro()}
+function hud(up={}){$("hud").innerHTML=STATS.map(([k,i,n])=>`<div class="stat ${up[k]?'up':''}">${i}<b>${st[k]}</b><span>${n}</span></div>`).join("")}
+function ov(h){const o=$("ov");o.innerHTML=h;o.style.display="block";o.scrollTop=0}
+function build(i){
+ let sd=i*977+13;const rn=()=>(sd=(sd*9301+49297)%233280)/233280;
+ L=2800+i*200;const gaps=[];
+ for(let n=0;n<2+(i>>1);n++)gaps.push([520+n*470+i*15,(i>=2&&n===0)?230:100]);
+ segs=[];let x=0;gaps.forEach(([gx,w])=>{segs.push([x,gx,GY]);x=gx+w});segs.push([x,L,GY]);
+ plats=[];mps=[];sprs=[];obs=[];hens=[];coinsL=[];
+ gaps.forEach(([gx,w],n)=>{
+  if(w>100){const x0=gx+w/2-45;mps.push({x:x0,px:x0,x0,r:50,y:GY,w:90})}
+  else{plats.push([gx-110,GY-95,320]);for(let k=0;k<3;k++)coinsL.push({x:gx-40+k*60,y:GY-125})}
+  for(let k=0;k<6;k++){const t=k/5;coinsL.push({x:gx-30+t*(w+60),y:GY-60-Math.sin(t*Math.PI)*95})}
+ });
+ const ge=gaps[gaps.length-1][0]+gaps[gaps.length-1][1];qx=ge+380;
+ const g0=gaps[0][0]+gaps[0][1],spx=g0+130;sprs.push({x:spx,y:GY-16,w:34,h:16,t:0});plats.push([spx+60,GY-205,150]);for(let k=0;k<5;k++)coinsL.push({x:spx+80+k*28,y:GY-240});
+ cp={x:qx-300,on:false};
+ const bad=(x,pad)=>gaps.some(([gx,w])=>x>gx-pad&&x<gx+w+pad+90)||(x>qx-250&&x<qx+740)||(x>spx-130&&x<spx+300)||(x>cp.x-60&&x<cp.x+60);
+ const br=[];for(let bx=640;bx<L-420;bx+=540){if(bad(bx,150)||bad(bx+110,150))continue;br.push([bx-110,bx+220]);for(let j=0;j<3;j++)obs.push({x:bx+j*36,y:GY-128,w:36,h:36,hit:1,k:j===1?"q":"b",b:0,used:0});}
+ let n=0;for(let bx=330;bx<L-260;bx+=190){n++;if(bad(bx,130))continue;const t=(n+i)%3;if(t!==2&&br.some(([a,b])=>bx>a&&bx<b))continue;if(t===2)hens.push({x:bx,y:GY-36,w:36,h:36,x0:bx,r:70});else{const h=t?70:40;obs.push({x:bx,y:GY-h,w:40,h,t})}}
+ for(let bx=280;bx<L-300;bx+=300){if(bad(bx,60))continue;for(let k=0;k<4;k++)coinsL.push({x:bx+k*30,y:GY-30})}
+ P={x:60,y:GY-44,w:30,h:44,vx:0,vy:0,on:false,mp:null,dir:1};lastSafe=60;qdone=false;res=null;rt=0;ptc=[];
+}
+function intro(){
+ mode="intro";build(day);dayCoins=0;$("dl").textContent=`Hari ${day+1} dari 7 · ${DAYS[day].p}`;
+ const dots=DAYS.map((d,i)=>`<span style="display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;background:${i<day?'#4f7a6c':i===day?'#d9a441':'#d5dcd7'}"></span>`).join("");
+ ov(`<div style="margin-bottom:8px">${dots}</div><div class="tag">HARI ${day+1} · ${DAYS[day].p}</div><h2>${DAYS[day].t}</h2><p class="story"><b>${DAYS[day].h}</b> ${DAYS[day].s}</p><p class="story">Bantu Rani berjalan ke kanan. Pecahkan bata dari bawah untuk koin 🪙, injak pegas untuk lompat tinggi, dan lompati rintangan. Di tengah jalan ada pertanyaan hari ini: sentuh blok jawaban 1 sampai 4, lalu lanjut ke bendera 🚩. Jatuh atau menabrak tidak mengurangi poin.</p><button class="btn" onclick="play()">Mulai berjalan</button>`);
+}
+function play(){initAudio();if(AC&&AC.state==="suspended")AC.resume();$("ov").style.display="none";mode="play"}
+function pick(i){
+ const o=DAYS[day].o[i],fx=o[2];picks.push(i);
+ STATS.forEach(([k])=>{if(fx[k])st[k]=clamp(st[k]+fx[k])});hud(fx);qdone=true;sfx.ok();
+ res={i,t:o[0],d:o[1],c:STATS.filter(([k])=>fx[k]).map(([k,ic,n])=>`${ic} ${n} ${fx[k]>0?'+':''}${fx[k]}`).join('    ')||'Tidak ada perubahan nilai'};rt=520;
+}
+function nextDay(){day++;if(day>=7)return ending();hud();intro()}
+function ending(){
+ mode="end";$("dl").textContent="Perjalanan selesai";
+ const {k,j,s,a}=st;let t="observer";
+ if(k>=50&&j>=45&&s>=50&&a>=50)t="change";else if(j>=45&&s>=45)t="voice";else if(k>=45)t="informed";
+ const e=ENDINGS[t],bar=(n,v)=>`<div class="row"><span>${n}</span><span>${v}</span></div><div class="meter"><i style="width:${v}%"></i></div>`;
+ ov(`<div class="tag">PERJALANAN SELESAI</div><h2>Profil perjalanan: ${e[0]}</h2><p class="story">${e[1]} Selama tujuh hari, Rani belajar bahwa pengalaman terhadap teknologi juga dibentuk oleh waktu, pekerjaan, akses informasi, jejaring, ruang bicara, dan kesempatan mengambil keputusan.</p>${bar("Pengetahuan",st.k)}${bar("Jejaring",st.j)}${bar("Suara",st.s)}${bar("Agency",st.a)}${bar("Energi tersisa",st.e)}
+ <div class="pm"><span><b>KNOW</b> Pengetahuan</span><span><b>ACCESS</b> Akses</span><span><b>VOICE</b> Suara</span><span><b>DECISION</b> Keputusan</span><span><b>AGENCY</b> Agency</span></div>
+ <p class="story">🪙 Koin dikumpulkan: <b>${coinsAll}</b> (hanya untuk keseruan, tidak mempengaruhi profil).</p>
+ <h3 style="margin:8px 0 4px">Refleksi</h3><p class="story">Perhatikan perjalananmu: apakah pengetahuan yang diperoleh berubah menjadi akses, suara, dan agency? Pilihan yang berbeda dapat menghasilkan pengalaman yang berbeda.</p><button class="btn" onclick="start()">Main Lagi</button>`);
+ sfx.win();
+}
+const hold=(id,k)=>{const b=$(id);b.addEventListener("pointerdown",ev=>{ev.preventDefault();keys[k]=1});["pointerup","pointerleave","pointercancel"].forEach(e=>b.addEventListener(e,()=>keys[k]=0))};
+hold("bl","L");hold("br","R");hold("bj","J");
+const KM={ArrowLeft:"L",ArrowRight:"R",ArrowUp:"J"," ":"J",a:"L",d:"R",w:"J"};
+addEventListener("keydown",e=>{const m=KM[e.key];if(m){keys[m]=1;e.preventDefault()}});addEventListener("keyup",e=>{const m=KM[e.key];if(m)keys[m]=0});
+function bump(o){if(!o.used){o.used=1;coinsAll++;dayCoins++;sfx.coin();ptc.push({x:o.x+18,y:o.y,vx:0,vy:-5,t:30,k:"c"})}else sfx.bump();o.b=8}
+function confetti(){for(let i=0;i<70;i++)ptc.push({x:P.x+15,y:P.y,vx:(Math.random()-.5)*9,vy:-Math.random()*10-3,t:80+Math.random()*40,k:"f",c:["#e8b830","#d9453a","#4f7a6c","#58b4e6","#e87fa0"][i%5]})}
+function step(){
+ ptc.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.k==="f")p.vy+=.35;p.t--});ptc=ptc.filter(p=>p.t>0);
+ if(mode==="win"){if(--winT<=0)nextDay();return}
+ if(mode!=="play")return;
+ fr++;cd--;if(rt>0)rt--;
+ mps.forEach(m=>{m.px=m.x;m.x=m.x0+Math.sin(fr*.025)*m.r});
+ sprs.forEach(s=>{if(s.t>0)s.t--});obs.forEach(o=>{if(o.b>0)o.b--});
+ P.vx=keys.R?4.2:keys.L?-4.2:0;if(P.vx)P.dir=P.vx<0?-1:1;
+ if(keys.J&&P.on){P.vy=-13;P.on=false;sfx.jump()}
+ const carry=P.mp?P.mp.x-P.mp.px:0,ox0=P.x;P.x=Math.max(0,P.x+P.vx+carry);
+ const pb=P.y+P.h;
+ for(const o of obs){if(!o.hit&&P.x+P.w>o.x&&P.x<o.x+o.w&&pb>o.y+6&&P.y<o.y+o.h)P.x=ox0}
+ P.vy=Math.min(P.vy+.6,14);const py0=P.y;P.y+=P.vy;P.on=false;P.mp=null;
+ if(P.vy<0)for(const o of obs){if(o.hit&&P.x+P.w>o.x+2&&P.x<o.x+o.w-2&&py0>=o.y+o.h-6&&P.y<o.y+o.h){P.y=o.y+o.h;P.vy=0;bump(o)}}
+ if(P.vy>=0){
+  const sf=[...segs.map(s=>[s[0],s[1],s[2],"g"]),...plats.map(p=>[p[0],p[0]+p[2],p[1],"p"]),...obs.map(o=>[o.x,o.x+o.w,o.y,"o"]),...mps.map(m=>[m.x,m.x+m.w,m.y,"m",m]),...sprs.map(s=>[s.x,s.x+s.w,s.y,"s",s])];
+  for(const [x1,x2,y,k,ob] of sf){if(P.x+P.w>x1+4&&P.x<x2-4&&pb<=y+6&&P.y+P.h>=y){P.y=y-P.h;P.vy=0;P.on=true;
+   if(k==="g")lastSafe=Math.max(40,P.x-10);if(k==="m")P.mp=ob;if(k==="s"){ob.t=12;P.vy=-18;P.on=false;sfx.boing()}break}}
+ }
+ if(P.y>H+80){P.x=Math.max(40,lastSafe-30);P.y=GY-P.h-60;P.vy=0;P.mp=null;tmsg="Tidak apa-apa, coba lagi ya 😊";toast=120;sfx.oops()}
+ coinsL.forEach(c=>{if(!c.got&&P.x+P.w>c.x-10&&P.x<c.x+10&&P.y+P.h>c.y-10&&P.y<c.y+10){c.got=1;coinsAll++;dayCoins++;sfx.coin();ptc.push({x:c.x,y:c.y,vx:0,vy:-3,t:18,k:"c"})}});
+ hens.forEach(h=>{h.x=h.x0+Math.sin(fr*.03)*h.r;if(cd<=0&&P.x+P.w>h.x&&P.x<h.x+h.w&&P.y+P.h>h.y&&P.y<h.y+h.h){P.x=Math.max(0,P.x-45);P.vy=-7;cd=40;tmsg="Ups, ada ayam lewat! 🐔";toast=70;sfx.bump()}});
+ if(!cp.on&&P.x>cp.x){cp.on=true;lastSafe=cp.x;tmsg="Checkpoint ✓";toast=90;sfx.coin()}
+ if(!qdone)for(let i=0;i<4;i++){const bx=qx+i*130;if(P.x+P.w>bx-6&&P.x<bx+58&&P.y<GY-86&&P.y+P.h>GY-136){if(i===3&&day===2&&picks[0]===0){tmsg="Blok ini belum terbuka karena kamu melewatkan sosialisasi di Hari 1";toast=120}else{pick(i);break}}}
+ if(P.x+P.w>=L-100){if(qdone){mode="win";winT=170;confetti();sfx.win()}else{P.x=L-100-P.w-2;tmsg="Jawab dulu: lompat dan sentuh salah satu blok jawaban 1-4";toast=150}}
+}
+// ===== gambar =====
+function band(f,col,hh,pw){for(let k=-1;k<5;k++){const x=((k*pw-cx*f)%(pw*4)+pw*4)%(pw*4)-pw;g.fillStyle=col;g.beginPath();g.ellipse(x+pw/2,GY,pw*.55,hh*(.7+((k+9)%3)*.15),0,Math.PI,0);g.fill()}}
+let cx=0;
+function brick(x,y,o){g.save();g.translate(0,-(o.b>0?Math.sin(o.b/8*3.14)*8:0));
+ const q=o.k==="q";g.fillStyle=o.used?"#8a6a3a":q?"#f5c242":"#c8683a";g.fillRect(x,y,36,36);g.strokeStyle=o.used?"#5f4724":q?"#b8860b":"#8f3f1f";g.lineWidth=2;g.strokeRect(x+1,y+1,34,34);
+ if(q&&!o.used){g.fillStyle="#fff";g.font="bold 24px system-ui";g.textAlign="center";g.fillText("?",x+18,y+27);g.textAlign="left"}else if(!q){g.beginPath();g.moveTo(x,y+18);g.lineTo(x+36,y+18);g.moveTo(x+18,y);g.lineTo(x+18,y+18);g.moveTo(x+9,y+18);g.lineTo(x+9,y+36);g.moveTo(x+27,y+18);g.lineTo(x+27,y+36);g.stroke()}g.restore()}
+function draw(){
+ if(day>=7)return;
+ g.textAlign="left";g.textBaseline="bottom";
+ cx=Math.max(0,Math.min(L-W,P.x-260));
+ const [sa,sb]=SKY[day%7],gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,sa);gr.addColorStop(1,sb);g.fillStyle=gr;g.fillRect(0,0,W,H);
+ g.fillStyle="rgba(255,244,180,.9)";g.beginPath();g.arc(690,70,34,0,7);g.fill();
+ g.fillStyle="rgba(255,255,255,.85)";for(let k=0;k<8;k++){const x=((k*300-cx*.15)%2400+2400)%2400-150,y=50+(k%3)*38;[0,26,-24].forEach((d,j)=>{g.beginPath();g.ellipse(x+d,y+(j?8:0),(j?30:40),(j?16:22),0,0,7);g.fill()})}
+ band(.3,"rgba(110,170,150,.55)",120,300);band(.6,"rgba(80,165,95,.8)",70,240);
+ // dekor: pohon & semak
+ for(let x=180;x<L;x+=330){const sx=x-cx;if(sx<-80||sx>W+80)continue;g.fillStyle="#7a5232";g.fillRect(sx-4,GY-30,8,30);g.fillStyle="#3f9b4a";g.beginPath();g.arc(sx,GY-44,24,0,7);g.fill();g.fillStyle="#4cae56";g.beginPath();g.arc(sx-12,GY-36,16,0,7);g.arc(sx+12,GY-36,16,0,7);g.fill()}
+ for(let x=90;x<L;x+=210){const sx=x-cx;g.fillStyle="#58b85a";g.beginPath();g.arc(sx,GY,14,Math.PI,0);g.arc(sx+16,GY,18,Math.PI,0);g.arc(sx+34,GY,12,Math.PI,0);g.fill()}
+ // tanah
+ segs.forEach(([x1,x2])=>{g.fillStyle="#b57a43";g.fillRect(x1-cx,GY,x2-x1,H-GY);g.fillStyle="#9a6535";for(let x=Math.ceil(x1/40)*40;x<x2;x+=40)g.fillRect(x-cx,GY+10,2,H-GY);g.fillRect(x1-cx,GY+40,x2-x1,2);g.fillStyle="#5cc24a";g.fillRect(x1-cx,GY,x2-x1,10);g.fillStyle="#7bd860";g.fillRect(x1-cx,GY,x2-x1,3)});
+ plats.forEach(([x,y,w])=>{g.fillStyle="#c98b4b";g.fillRect(x-cx,y,w,14);g.fillStyle="#e3ad6e";g.fillRect(x-cx,y,w,4);g.fillStyle="#8a5a2b";g.fillRect(x-cx,y+14,w,3)});
+ mps.forEach(m=>{g.fillStyle="#4f7a6c";g.fillRect(m.x-cx,m.y,m.w,12);g.fillStyle="#7fb09f";g.fillRect(m.x-cx,m.y,m.w,4);g.fillStyle="#d9a441";g.fillRect(m.x-cx+6,m.y+4,10,4);g.fillRect(m.x-cx+m.w-16,m.y+4,10,4)});
+ sprs.forEach(s=>{const h=s.t>0?8:16;g.fillStyle="#555";g.fillRect(s.x-cx,GY-4,s.w,4);g.strokeStyle="#888";g.lineWidth=3;g.beginPath();g.moveTo(s.x-cx+6,GY-4);for(let k=0;k<4;k++)g.lineTo(s.x-cx+(k%2?26:8),GY-4-(h-4)*(k+1)/4);g.stroke();g.fillStyle="#d9453a";g.fillRect(s.x-cx-2,GY-4-h,s.w+4,6)});
+ obs.forEach(o=>{if(o.hit){brick(o.x-cx,o.y,o);return}g.fillStyle="#b98c5a";g.fillRect(o.x-cx,o.y,o.w,o.h);g.strokeStyle="#7a5a32";g.lineWidth=3;g.strokeRect(o.x-cx+1,o.y+1,o.w-2,o.h-2);g.beginPath();g.moveTo(o.x-cx,o.y);g.lineTo(o.x-cx+o.w,o.y+o.h);g.moveTo(o.x-cx+o.w,o.y);g.lineTo(o.x-cx,o.y+o.h);g.stroke();g.font="22px serif";g.fillText(o.t?"🪣":"🧺",o.x-cx+8,o.y+30)});
+ // checkpoint & bendera akhir
+ g.fillStyle="#7a5232";g.fillRect(cp.x-cx,GY-60,5,60);g.fillStyle=cp.on?"#4f7a6c":"#aaa";g.beginPath();g.moveTo(cp.x+5-cx,GY-60);g.lineTo(cp.x+35-cx,GY-50);g.lineTo(cp.x+5-cx,GY-40);g.fill();
+ g.fillStyle="#7a5232";g.fillRect(L-100-cx,GY-130,6,130);g.fillStyle="#d9453a";g.beginPath();g.moveTo(L-94-cx,GY-130);g.lineTo(L-50-cx+Math.sin(fr*.1)*4,GY-112);g.lineTo(L-94-cx,GY-94);g.fill();
+ g.font="bold 15px system-ui";g.fillStyle="#1f2d33";g.fillText("Selesai hari ini",L-165-cx,GY-140);
+ // koin
+ coinsL.forEach(c=>{if(c.got)return;const w=9*Math.abs(Math.cos(fr*.08+c.x*.05))+2;g.fillStyle="#f5c242";g.strokeStyle="#b8860b";g.lineWidth=2;g.beginPath();g.ellipse(c.x-cx,c.y,w,10,0,0,7);g.fill();g.stroke()});
+ // warga di dekat blok jawaban
+ const cs=CAST[day];cs.forEach((ix,k)=>{const nd=NPCD[ix],x=qx+3*130+120+k*46-cx,near=Math.abs(P.x-(qx+3*130+120))<260;
+  g.globalAlpha=.92;person(g,x,GY-16,.6,nd.st,false,-1,fr);g.globalAlpha=1;
+  if(near){g.font="bold 11px system-ui";const w=g.measureText(nd.n).width+10;g.fillStyle="rgba(60,40,20,.8)";g.beginPath();g.roundRect(x-w/2,GY-14,w,15,6);g.fill();g.fillStyle="#fff";g.textAlign="center";g.fillText(nd.n,x,GY-3);g.textAlign="left";
+   g.font="18px serif";g.fillText("✋",x-9,GY-62-Math.abs(Math.sin(fr*.15+k))*5)}});
+ hens.forEach(h=>{g.font="34px serif";g.fillText("🐔",h.x-cx,h.y+38)});
+ // blok jawaban + panel (tidak berubah)
+ const D=DAYS[day],lk=i=>i===3&&day===2&&picks[0]===0;
+ for(let i=0;i<4;i++){const bx=qx+i*130-cx,on=!qdone&&!lk(i),ch=qdone&&res&&res.i===i;
+  g.fillStyle=ch?"#4f7a6c":on?"#e8b830":"#b9b9a8";g.fillRect(bx,GY-130,52,44);g.strokeStyle="#8a6a10";g.lineWidth=3;g.strokeRect(bx,GY-130,52,44);
+  g.fillStyle="#fff";g.font="bold 28px system-ui";g.fillText(lk(i)?"🔒":ch?"✓":String(i+1),bx+(lk(i)?9:15),GY-91);
+  g.fillStyle="#1f2d33";g.font="bold 14px system-ui";let ln=[],l="";D.o[i][0].split(" ").forEach(w=>{const t=l?l+" "+w:w;if(g.measureText(t).width>116&&l){ln.push(l);l=w}else l=t});ln.push(l);
+  const L5=ln.slice(0,5),ty=GY-138-L5.length*16;g.fillStyle="rgba(251,250,246,.88)";g.fillRect(bx+26-63,ty-2,126,L5.length*16+4);g.fillStyle="#1f2d33";g.textBaseline="top";g.textAlign="center";L5.forEach((t,k)=>g.fillText(t,bx+26,ty+k*16));g.textAlign="left";g.textBaseline="bottom"}
+ const wr=(t,w,f)=>{g.font=f;let o=[],l="";t.split(" ").forEach(x=>{const tt=l?l+" "+x:x;if(g.measureText(tt).width>w&&l){o.push(l);l=x}else l=tt});o.push(l);return o};
+ const box=h=>{g.fillStyle="rgba(251,250,246,.94)";g.fillRect(8,6,784,h);g.strokeStyle="#4f7a6c";g.lineWidth=2;g.strokeRect(8,6,784,h)};
+ g.textBaseline="top";
+ 
+ g.textBaseline="bottom";
+
+ // Rani
+ const walking=P.on&&(keys.L||keys.R);
+ person(g,P.x+15-cx,P.y+P.h,.74,RANI,walking,P.dir,fr);nametag(P.x+15-cx,P.y+P.h+1,"Rani");
+ ptc.forEach(p=>{if(p.k==="c"){g.fillStyle="#f5c242";g.beginPath();g.arc(p.x-cx,p.y,7,0,7);g.fill()}else{g.fillStyle=p.c;g.fillRect(p.x-cx,p.y,6,4)}});
+ // HUD canvas
+ g.textBaseline="alphabetic";
+ const pnl=false;
+ if(!pnl){g.fillStyle="rgba(251,250,246,.9)";g.beginPath();g.roundRect(8,8,110,30,12);g.fill();g.fillStyle="#1f2d33";g.font="bold 17px system-ui";g.fillText("🪙 "+coinsAll,18,29);
+ g.fillStyle="rgba(251,250,246,.9)";g.beginPath();g.roundRect(W-218,12,206,22,10);g.fill();g.fillStyle="#d5dcd7";g.fillRect(W-208,19,186,8);g.fillStyle="#4f7a6c";g.fillRect(W-208,19,186*Math.min(1,P.x/L),8);g.font="14px serif";g.fillText("👩",W-208+186*Math.min(1,P.x/L)-8,31);}
+ if(toast>0){toast--;g.font="bold 18px system-ui";g.fillStyle="#1f2d33";g.textAlign="center";g.fillText(tmsg,400,382);g.textAlign="left"}
+ if(mode==="win"){g.fillStyle="rgba(251,250,246,.93)";g.beginPath();g.roundRect(200,120,400,150,18);g.fill();g.strokeStyle="#4f7a6c";g.lineWidth=4;g.stroke();g.fillStyle="#1f2d33";g.textAlign="center";g.font="bold 28px system-ui";g.fillText(`Hari ${day+1} selesai!`,400,170);g.font="20px system-ui";g.fillText(`🪙 ${dayCoins} koin hari ini`,400,206);g.font="34px serif";g.fillText("⭐".repeat(dayCoins>=25?3:dayCoins>=14?2:1),400,250);g.textAlign="left"}
+ g.textBaseline="bottom";
+ updPanel();
+}
+let lastQP="";
+function updPanel(){
+ const el=$("qp");let h="";
+ if(mode==="play"||mode==="win"){
+  const D=DAYS[day],lk=i=>i===3&&day===2&&picks[0]===0;
+  if(!qdone&&P.x+P.w>qx-330&&P.x<qx+560){
+   let near=-1;for(let i=0;i<4;i++)if(Math.abs(P.x+15-(qx+i*130+26))<90)near=i;
+   if(near<0)h=`<div class="qt">HARI ${day+1} · PERTANYAAN HARI INI</div><div class="qh">${D.h}</div><p class="qs">${D.s}</p><div class="qq">Apa yang akan Rani lakukan?</div><div class="hw">Dekati blok 1-4 untuk melihat pratinjau, lalu lompat dan sentuh satu blok untuk memilih.</div>`;
+   else if(lk(near))h=`<div class="qt">HARI ${day+1} · PERTANYAAN HARI INI</div><div class="pl">Pilihan ${near+1} · terkunci</div><div class="pd">Belum terbuka karena kamu melewatkan sosialisasi di Hari 1.</div>`;
+   else h=`<div class="qt">${D.h}</div><div class="pl">Pratinjau pilihan ${near+1} · belum dipilih, lompat dan sentuh blok untuk memilih</div><div class="pt">${D.o[near][0]}</div><div class="pd"><b>Dampaknya:</b> ${D.o[near][1]}</div>`;
+  }else if(qdone&&res&&rt>0){
+   const chips=res.c.split("    ").map(c=>`<span>${c}</span>`).join("");
+   h=`<div class="qt">PILIHANMU SUDAH TERCATAT · BLOK ${res.i+1}</div><div class="pt">${res.t}</div><div class="pd"><b>Dampaknya:</b> ${res.d}</div><div class="chips">${chips}</div>`;
+  }
+ }
+ el.style.display=h?"block":"none";
+ if(h!==lastQP){el.innerHTML=h;lastQP=h}
+}
+start();
+(function loop(){try{step();draw()}catch(e){console.error(e)}requestAnimationFrame(loop)})();
+</script></body></html>
